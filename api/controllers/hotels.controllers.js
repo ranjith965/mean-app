@@ -1,82 +1,77 @@
-var dbconn = require('../data/dbconnection.js');
-var ObjectId = require('mongodb').ObjectId;
-var jsonData = require('../data/hotel-data.json');
+var mongoose = require('mongoose');
+var Hotel = mongoose.model('Hotel');
 
-module.exports.hotelsGetAll = function(req, res){
-    var db = dbconn.get();
-    console.log('db',db);
 
-    var collection = db.collection('tech');
-    console.log('collections are', collection);
+module.exports.hotelsGetAll = function(req, res) {
 
-    console.log('GET the hotels');
-    
-    var offset = 0;
-    var count = 10;
 
-    if(req.query && req.query.offset){
-      offset = req.query.offset;
-    }
+  console.log('GET the hotels');
+  console.log(req.query);
 
-    if(req.query && req.query.count){
-      count = req.query.count;
-    }
+  var offset = 0;
+  var count = 5;
 
-    collection
-             .find()
-             .skip(offset)
-             .limit(count)
-             .toArray(function(err,data){
-               if(err) throw err;
-               res
-                 .status(200)
-                 .json(data);
-             });
+  if (req.query && req.query.offset) {
+    offset = parseInt(req.query.offset, 10);
+  }
+
+  if (req.query && req.query.count) {
+    count = parseInt(req.query.count, 10);
+  }
+
+  Hotel
+    .find()
+    .skip(offset)
+    .limit(count)
+    .exec(function(err, hotels) {
+      console.log("Found hotels", hotels.length);
+      res
+        .json(hotels);
+    });
 
 };
 
-module.exports.hotelsGetOne = function(req, res){
-  var db = dbconn.get();
-  var collection = db.collection('tech');
-  
-  var hotelId = req.params.hotelId;
+module.exports.hotelsGetOne = function(req, res) {
+  var id = req.params.hotelId;
+  console.log('GET hotelId', id);
 
-  console.log('GET the hotel ',hotelId );
-  collection
-    .findOne({
-      _id : ObjectId(hotelId)  
-    },function(err, doc){
-      if(err) throw err;
+  Hotel
+    .findById(id)
+    .exec(function(err, doc) {
       res
         .status(200)
         .json(doc);
     });
+
 };
 
-module.exports.hotelsAddOne = function(req, res){
+module.exports.hotelsAddOne = function(req, res) {
+  console.log("POST new hotel");
   var db = dbconn.get();
-  var collection = db.collection('tech');
+  var collection = db.collection('hotels');
   var newHotel;
 
-  if(req.body && req.body.name && req.body.stars){
+  if (req.body && req.body.name && req.body.stars) {
     newHotel = req.body;
     newHotel.stars = parseInt(req.body.stars, 10);
-    
-    collection.insertOne(newHotel,function(err,response){
-      if(err) throw err;
-      console.log(response);
-      console.log(response.ops);
-
+    collection.insertOne(newHotel, function(err, response) {
+      console.log("Hotel added", response);
+      console.log("Hotel added", response.ops);
       res
         .status(201)
         .json(response.ops);
     });
-  } else{
-    console.log('Failed to add the hotel');
-
+    // console.log(newHotel);
+    // res
+    //   .status(200)
+    //   .json(newHotel);
+  } else {
+    console.log("Data missing from body");
     res
-      .status(500)
-      .json({"message" : "unable to add the hotel"});
+      .status(400)
+      .json({
+        message: "Required data missing from body"
+      });
   }
-  
+
 };
