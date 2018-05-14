@@ -54,9 +54,29 @@ module.exports.hotelsGetOne = function(req, res){
 };
 
 module.exports.hotelsAddOne = function(req, res){
-  console.log('POST the hotel');
+  var db = dbconn.get();
+  var collection = db.collection('tech');
+  var newHotel;
+
+  if(req.body && req.body.name && req.body.stars){
+    newHotel = req.body;
+    newHotel.stars = parseInt(req.body.stars, 10);
+    
+    collection.insertOne(newHotel,function(err,response){
+      if(err) throw err;
+      console.log(response);
+      console.log(response.ops);
+
+      res
+        .status(201)
+        .json(response.ops);
+    });
+  } else{
+    console.log('Failed to add the hotel');
+
+    res
+      .status(500)
+      .json({"message" : "unable to add the hotel"});
+  }
   
-  res
-    .status(200)
-    .json(req.body);
 };
