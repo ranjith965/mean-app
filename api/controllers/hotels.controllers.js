@@ -38,10 +38,10 @@ module.exports.hotelsGetAll = function(req, res) {
   var offset = 0;
   var count = 5;
 
-  // if (req.query && req.query.lat && req.query.lng) {
-  //   runGeoQuery(req, res);
-  //   return;
-  // }
+  if (req.query && req.query.lat && req.query.lng) {
+    runGeoQuery(req, res);
+    return;
+  }
 
   if (req.query && req.query.offset) {
     offset = parseInt(req.query.offset, 10);
