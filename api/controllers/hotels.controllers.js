@@ -74,4 +74,4 @@ module.exports.hotelsAddOne = function(req, res) {
       });
   }
 
-};
+}; 
